@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
 
 
 class UserManager(BaseUserManager):
@@ -19,6 +20,7 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self.db)
         return user
+
 
 # Account based on E-mail and not username.
 class User(AbstractBaseUser, PermissionsMixin):
