@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Notes
+Docker.txt
+
 # C extensions
 *.so
 
