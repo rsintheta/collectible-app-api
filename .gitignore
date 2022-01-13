@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Custom
+collectible-app/collectible-django/ybot52.py
+
 # Notes
 Docker.txt
 
