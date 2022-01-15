@@ -14,6 +14,15 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return gum().objects.create_user(**validated_data)
 
+    # Updates a user and sets the password properly
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+
 
 # Serializer for the user authentication object
 class AuthTokenSerializer(serializers.Serializer):
