@@ -21,4 +21,5 @@ app_name = 'collectible-django'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/user/', include('user.urls')),
+    path('api/collection/', include('collection.urls')),
 ]
