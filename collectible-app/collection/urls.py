@@ -5,7 +5,7 @@ from collection import views
 
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
-
+router.register('items', views.ItemViewSet)
 app_name = 'collection'
 
 urlpatterns = [
