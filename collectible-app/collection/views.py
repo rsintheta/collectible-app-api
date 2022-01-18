@@ -7,7 +7,9 @@ from collection import serializers
 
 
 # Manages tags in the database
-class TagViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class TagViewSet(viewsets.GenericViewSet,
+                 mixins.CreateModelMixin,
+                 mixins.ListModelMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Tag.objects.all()
@@ -16,3 +18,7 @@ class TagViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     # Returns objects from database that belong to the authenticated user only
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    # Create a new user tag
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
