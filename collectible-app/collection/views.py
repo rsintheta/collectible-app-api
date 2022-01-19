@@ -6,37 +6,29 @@ from base.models import Tag, Item
 from collection import serializers
 
 
-# Manages tags in the database
-class TagViewSet(viewsets.GenericViewSet,
-                 mixins.CreateModelMixin,
-                 mixins.ListModelMixin):
+# Base viewset for user owned collection attributes
+class BaseCollectionAttrViewset(viewsets.GenericViewSet,
+                                mixins.ListModelMixin,
+                                mixins.CreateModelMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    # Return objects for the currently authenticated user only
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    # Create a new user object
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+# Manages tags in the database
+class TagViewSet(BaseCollectionAttrViewset):
     queryset = Tag.objects.all()
     serializer_class = serializers.TagSerializer
 
-    # Returns objects from database that belong to the authenticated user only
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-name')
-
-    # Create a new user tag
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
 
 # Manages Items in the database
-class ItemViewSet(viewsets.GenericViewSet,
-                  mixins.CreateModelMixin,
-                  mixins.ListModelMixin):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+class ItemViewSet(BaseCollectionAttrViewset):
     queryset = Item.objects.all()
     serializer_class = serializers.ItemSerializer
-
-    # Returns objects for the current authenticated user
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-name')
-
-    # Creates a new item
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
