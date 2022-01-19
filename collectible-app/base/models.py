@@ -55,3 +55,20 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# A collection object composed of items with tags.
+class Collection(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(max_length=255)
+    items_in_collection = models.IntegerField()
+    floor_price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+    items = models.ManyToManyField('Item')
+    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title

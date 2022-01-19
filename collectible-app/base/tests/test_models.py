@@ -52,3 +52,13 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(item), item.name)
+
+    # Test the collection string representation
+    def test_collection_str(self):
+        collection = models.Collection.objects.create(
+            user=sample_user(),
+            title='Dead Avatar Project',
+            items_in_collection=10000,
+            floor_price=0.50
+        )
+        self.assertEqual(str(collection), collection.title)
