@@ -25,7 +25,9 @@ class TagViewSet(viewsets.GenericViewSet,
 
 
 # Manages Items in the database
-class ItemViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class ItemViewSet(viewsets.GenericViewSet,
+                  mixins.CreateModelMixin,
+                  mixins.ListModelMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Item.objects.all()
@@ -34,3 +36,7 @@ class ItemViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     # Returns objects for the current authenticated user
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    # Creates a new item
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
