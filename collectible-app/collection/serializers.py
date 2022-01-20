@@ -34,3 +34,9 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'items', 'tags', 'items_in_collection',
                   'floor_price', 'link')
         read_only_fields = ('id',)
+
+
+# Serialize a collection detail
+class CollectionDetailSerializer(CollectionSerializer):
+        items = ItemSerializer(many=True, read_only=True)
+        tags = TagSerializer(many=True, read_only=True)

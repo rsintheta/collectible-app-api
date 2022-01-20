@@ -3,13 +3,29 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from base.models import Collection
-from collection.serializers import CollectionSerializer
+from base.models import Collection, Tag, Item
+from collection.serializers import CollectionSerializer, \
+                                   CollectionDetailSerializer
 
 COLLECTIONS_URL = reverse('collection:collection-list')
 
 
-# Creates and returns a sample collection
+# Returns collection detail URL
+def detail_url(collection_id):
+    return reverse('collection:collection-detail', args=[collection_id])
+
+
+# Creates and returns a sample Tag for testing
+def sample_tag(user, name='Pins'):
+    return Tag.objects.create(user=user, name=name)
+
+
+# Creates and returns a sample Item for testing
+def sample_item(user, name='DeadAvatar001'):
+    return Item.objects.create(user=user, name=name)
+
+
+# Creates and returns a sample Collection for testing
 def sample_collection(user, **params):
     defaults = {
         'title': 'Dead Avatar Project',
@@ -65,4 +81,14 @@ class PrivateCollectionAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data, serializer.data)
+
+    # Tests viewing a collection detail
+    def test_view_collection_detail(self):
+        collection = sample_collection(user=self.user)
+        collection.tags.add(sample_tag(user=self.user))
+        collection.items.add(sample_item(user=self.user))
+        url = detail_url(collection.id)
+        res = self.client.get(url)
+        serializer = CollectionDetailSerializer(collection)
         self.assertEqual(res.data, serializer.data)

@@ -44,3 +44,9 @@ class CollectionViewSet(viewsets.ModelViewSet):
     # Retrieves the Collection list for the authenticated user
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+    # Returns the appropriate serializer class
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return serializers.CollectionDetailSerializer
+        return self.serializer_class
