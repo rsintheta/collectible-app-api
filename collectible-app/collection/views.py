@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from base.models import Tag, Item
+from base.models import Tag, Item, Collection
 from collection import serializers
 
 
@@ -22,7 +22,7 @@ class BaseCollectionAttrViewset(viewsets.GenericViewSet,
         serializer.save(user=self.request.user)
 
 
-# Manages tags in the database
+# Manages Tags in the database
 class TagViewSet(BaseCollectionAttrViewset):
     queryset = Tag.objects.all()
     serializer_class = serializers.TagSerializer
@@ -32,3 +32,15 @@ class TagViewSet(BaseCollectionAttrViewset):
 class ItemViewSet(BaseCollectionAttrViewset):
     queryset = Item.objects.all()
     serializer_class = serializers.ItemSerializer
+
+
+# Manages Collections in the database
+class CollectionViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.CollectionSerializer
+    queryset = Collection.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    # Retrieves the Collection list for the authenticated user
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)

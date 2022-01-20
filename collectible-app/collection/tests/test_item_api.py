@@ -60,7 +60,7 @@ class PrivateItemsAPITests(TestCase):
         self.client.post(ITEMS_URL, item)
         exists = Item.objects.filter(
             user=self.user,
-            name=item['name'],
+            name=item['name']
         ).exists()
         self.assertTrue(exists)
 

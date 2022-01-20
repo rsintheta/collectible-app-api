@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from base.models import Tag, Item
+from base.models import Tag, Item, Collection
 
 
 # Serializer for tag objects
@@ -15,4 +15,22 @@ class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = ('id', 'name')
+        read_only_fields = ('id',)
+
+
+# Serializer for collections
+class CollectionSerializer(serializers.ModelSerializer):
+    items = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Item.objects.all()
+    )
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
+
+    class Meta:
+        model = Collection
+        fields = ('id', 'title', 'items', 'tags', 'items_in_collection',
+                  'floor_price', 'link')
         read_only_fields = ('id',)
