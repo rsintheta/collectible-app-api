@@ -92,3 +92,52 @@ class PrivateCollectionAPITests(TestCase):
         res = self.client.get(url)
         serializer = CollectionDetailSerializer(collection)
         self.assertEqual(res.data, serializer.data)
+
+    # Tests creating a collection
+    def test_create_basic_collection(self):
+        collection = {
+            'title': 'Dead Avatar Project',
+            'items_in_collection': 10000,
+            'floor_price': 0.50,
+        }
+        res = self.client.post(COLLECTIONS_URL, collection)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        collectionID = Collection.objects.get(id=res.data['id'])
+        for key in collection.keys():
+            self.assertEqual(collection[key], getattr(collectionID, key))
+
+    # Tests creating a collection with tags
+    def test_create_collection_with_tags(self):
+        tag1 = sample_tag(user=self.user, name='Pins')
+        tag2 = sample_tag(user=self.user, name='NFTs')
+        collection = {
+            'title': 'Dead Avatar Project',
+            'tags': [tag1.id, tag2.id],
+            'items_in_collection': 10000,
+            'floor_price': 0.50,
+        }
+        res = self.client.post(COLLECTIONS_URL, collection)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        collectionID = Collection.objects.get(id=res.data['id'])
+        tags = collectionID.tags.all()
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    # Tests creating a collection with items
+    def test_create_collection_with_items(self):
+        item1 = sample_item(user=self.user, name='DeadAvatar456')
+        item2 = sample_item(user=self.user, name='DeadAvatar001')
+        collection = {
+            'title': 'Dead Avatar Project',
+            'items': [item1.id, item2.id],
+            'items_in_collection': 10000,
+            'floor_price': 0.50,
+        }
+        res = self.client.post(COLLECTIONS_URL, collection)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        collectionID = Collection.objects.get(id=res.data['id'])
+        items = collectionID.items.all()
+        self.assertEqual(items.count(), 2)
+        self.assertIn(item1, items)
+        self.assertIn(item2, items)

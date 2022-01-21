@@ -50,3 +50,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return serializers.CollectionDetailSerializer
         return self.serializer_class
+
+    # Creates a new collection
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

@@ -65,7 +65,7 @@ class Collection(models.Model):
     )
     title = models.CharField(max_length=255)
     items_in_collection = models.IntegerField()
-    floor_price = models.DecimalField(max_digits=5, decimal_places=2)
+    floor_price = models.DecimalField(max_digits=8, decimal_places=2)
     link = models.CharField(max_length=255, blank=True)
     items = models.ManyToManyField('Item')
     tags = models.ManyToManyField('Tag')
