@@ -16,7 +16,7 @@ def detail_url(collection_id):
 
 
 # Creates and returns a sample Tag for testing
-def sample_tag(user, name='Pins'):
+def sample_tag(user, name='NFTs'):
     return Tag.objects.create(user=user, name=name)
 
 
@@ -141,3 +141,38 @@ class PrivateCollectionAPITests(TestCase):
         self.assertEqual(items.count(), 2)
         self.assertIn(item1, items)
         self.assertIn(item2, items)
+
+    # Tests updating a collection with patch (partial) update
+    def test_partial_update_collection(self):
+        collection = sample_collection(user=self.user)
+        collection.tags.add(sample_tag(user=self.user))
+        new_tag = sample_tag(user=self.user, name='Pins')
+        objectData = {'title': 'Comic-Con 2019 Set', 'tags': [new_tag.id]}
+        url = detail_url(collection.id)
+        self.client.patch(url, objectData)
+        collection.refresh_from_db()
+        self.assertEqual(collection.title, objectData['title'])
+        tags = collection.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    # Tests updating a collection with put (overwrite) update
+    def test_full_collection(self):
+        collection = sample_collection(user=self.user)
+        collection.tags.add(sample_tag(user=self.user))
+        objectData = {
+            'title': 'Comic-Con 2019 Set',
+            'items_in_collection': 10000,
+            'floor_price': 50.00,
+        }
+        url = detail_url(collection.id)
+        self.client.put(url, objectData)
+        collection.refresh_from_db()
+        self.assertEqual(collection.title, objectData['title'])
+        self.assertEqual(
+            collection.items_in_collection,
+            objectData['items_in_collection']
+        )
+        self.assertEqual(collection.floor_price, objectData['floor_price'])
+        tags = collection.tags.all()
+        self.assertEqual(len(tags), 0)
