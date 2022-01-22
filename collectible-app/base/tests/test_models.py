@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.test import TestCase
 from django.contrib.auth import get_user_model as gum
 from base import models
@@ -62,3 +63,12 @@ class ModelTests(TestCase):
             floor_price=0.50
         )
         self.assertEqual(str(collection), collection.title)
+
+    @patch('uuid.uuid4')
+    # Tests that images are saved to the current location
+    def test_collection_filename_uuid(self, mock_uuid):
+        uuid = 'foo-uuid'
+        mock_uuid.return_value = uuid
+        file_path = models.collection_image_file_path(None, 'testImage.png')
+        expected_path = f'uploads/collection/{uuid}.png'
+        self.assertEqual(file_path, expected_path)
