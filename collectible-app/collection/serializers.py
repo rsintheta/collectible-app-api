@@ -40,3 +40,11 @@ class CollectionSerializer(serializers.ModelSerializer):
 class CollectionDetailSerializer(CollectionSerializer):
         items = ItemSerializer(many=True, read_only=True)
         tags = TagSerializer(many=True, read_only=True)
+
+
+# Serializes uploaded images to Collections
+class CollectionImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Collection
+        fields = ('id', 'image')
+        read_only_fields = ('id',)

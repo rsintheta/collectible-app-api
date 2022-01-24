@@ -1,3 +1,6 @@
+import tempfile
+import os
+from PIL import Image
 from django.contrib.auth import get_user_model as gum
 from django.test import TestCase
 from django.urls import reverse
@@ -10,7 +13,12 @@ from collection.serializers import CollectionSerializer, \
 COLLECTIONS_URL = reverse('collection:collection-list')
 
 
-# Returns collection detail URL
+# Returns Collection image URL
+def image_upload_url(collection_id):
+    return reverse('collection:collection-upload-image', args=[collection_id])
+
+
+# Returns Collection detail URL
 def detail_url(collection_id):
     return reverse('collection:collection-detail', args=[collection_id])
 
@@ -176,3 +184,36 @@ class PrivateCollectionAPITests(TestCase):
         self.assertEqual(collection.floor_price, objectData['floor_price'])
         tags = collection.tags.all()
         self.assertEqual(len(tags), 0)
+
+
+class CollectionImageUploadTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = gum().objects.create_user(
+            'loremipsum@gmail.com',
+            'Tbin5041'
+        )
+        self.client.force_authenticate(self.user)
+        self.collection = sample_collection(user=self.user)
+
+    def tearDown(self):
+        self.collection.image.delete()
+
+    # Tests uploading an image to the Collection
+    def test_upload_image_to_collection(self):
+        url = image_upload_url(self.collection.id)
+        with tempfile.NamedTemporaryFile(suffix='.png') as ntf:
+            img = Image.new('RGB', (10, 10))
+            img.save(ntf, format='PNG')
+            ntf.seek(0)
+            res = self.client.post(url, {'image': ntf}, format='multipart')
+        self.collection.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.collection.image.path))
+
+    # Tests that an invalid image cannot be accepted
+    def test_upload_image_bad_request(self):
+        url = image_upload_url(self.collection.id)
+        res = self.client.post(url, {'image': 'error'}, format='multipart')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
