@@ -2,7 +2,7 @@ from rest_framework import serializers
 from base.models import Tag, Item, Collection
 
 
-# Serializer for tag objects
+# Serializes a Tag
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -10,7 +10,7 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-# Serializer for items
+# Serializes an Item
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
@@ -18,7 +18,7 @@ class ItemSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-# Serializer for collections
+# Serializes a Collection
 class CollectionSerializer(serializers.ModelSerializer):
     items = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -36,7 +36,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-# Serialize a collection detail
+# Serializes a Collections details
 class CollectionDetailSerializer(CollectionSerializer):
         items = ItemSerializer(many=True, read_only=True)
         tags = TagSerializer(many=True, read_only=True)

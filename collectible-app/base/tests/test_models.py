@@ -4,13 +4,13 @@ from django.contrib.auth import get_user_model as gum
 from base import models
 
 
-# Helper function to create users for tests
+# Helper function that creates users for tests
 def sample_user(email='loremipsum@gmail.com', password='Tbin5041'):
     return gum().objects.create_user(email, password)
 
 
 class ModelTests(TestCase):
-    # Test creating users
+    # Tests creating Users
     def test_create_user_with_email_successful(self):
         email = 'loremipsum@gmail.com'
         password = 'Tbin5041'
@@ -19,25 +19,25 @@ class ModelTests(TestCase):
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
 
-    # Test that the email is normalized
+    # Tests that the email is normalized
     def test_new_user_email_normalized(self):
         email = 'loremipsum@GMail.cOM'
         user = gum().objects.create_user(email, 'Tbin5041')
         self.assertEqual(user.email, email.lower())
 
-    # Test to make sure entered email is valid
+    # Tests to make sure the entered email is valid
     def test_new_user_invalid_email(self):
         with self.assertRaises(ValueError):
             gum().objects.create_user(None, 'tobn')
 
-    # Test creating a superuser
+    # Tests creating a Superuser
     def test_create_new_superuser(self):
         user = gum().objects.create_superuser(
             'mloremipsu@gmail.com', 'Tbin5041')
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
 
-    # Tests the tag string representation
+    # Tests the Tag string representation
     def test_tag_str(self):
         tag = models.Tag.objects.create(
             user=sample_user(),
@@ -45,7 +45,7 @@ class ModelTests(TestCase):
         )
         self.assertEqual(str(tag), tag.name)
 
-    # Test the item string representation
+    # Tests the Item string representation
     def test_item_str(self):
         item = models.Item.objects.create(
             user=sample_user(),
@@ -54,7 +54,7 @@ class ModelTests(TestCase):
 
         self.assertEqual(str(item), item.name)
 
-    # Test the collection string representation
+    # Tests the Collection string representation
     def test_collection_str(self):
         collection = models.Collection.objects.create(
             user=sample_user(),

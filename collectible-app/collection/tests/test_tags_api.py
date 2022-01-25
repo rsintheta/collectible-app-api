@@ -10,18 +10,18 @@ from collection.serializers import TagSerializer
 TAGS_URL = reverse('collection:tag-list')
 
 
-# Test the publicly available tags API
+# Test the publicly available features of the Tags in the API
 class PublicTagsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    # Make sure you can't retrieve tags without authentication
+    # Make sure you can't retrieve Tags without authentication
     def test_login_required(self):
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# Tests the tags API that requires authentication
+# Tests the Tags features in the API that require authentication
 class PrivateTagsAPITests(TestCase):
     def setUp(self):
         self.user = gum().objects.create_user(
@@ -30,7 +30,7 @@ class PrivateTagsAPITests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-    # Test retrieving user tags
+    # Tests retrieving User Tags
     def test_retrieve_tags(self):
         Tag.objects.create(user=self.user, name='Pins')
         Tag.objects.create(user=self.user, name='bayc')
@@ -42,7 +42,7 @@ class PrivateTagsAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    # Test that the tags returned are for the authenticated user
+    # Tests that the Tags returned are for the authenticated User
     def test_tags_limited_to_user(self):
         user2 = gum().objects.create_user('oremlipsum@gmail.com', 'Tobn2180')
         Tag.objects.create(user=user2, name='DAP')
@@ -52,7 +52,7 @@ class PrivateTagsAPITests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], tag.name)
 
-    # Tests creation of a new tag
+    # Tests creation of a new Tag
     def test_create_tag_successful(self):
         tag = {'name': 'Pins'}
         self.client.post(TAGS_URL, tag)
@@ -63,7 +63,7 @@ class PrivateTagsAPITests(TestCase):
         ).exists()
         self.assertTrue(exists)
 
-    # Tests creating a tag with invalid data
+    # Tests creating a Tag with invalid data
     def test_create_tag_invalid(self):
         tag = {'name': ''}
         res = self.client.post(TAGS_URL, tag)

@@ -8,18 +8,18 @@ from base.models import Tag, Item, Collection
 from collection import serializers
 
 
-# Base viewset for user owned collection attributes
+# A basic viewset for Collection attributes
 class BaseCollectionAttrViewset(viewsets.GenericViewSet,
                                 mixins.ListModelMixin,
                                 mixins.CreateModelMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    # Return objects for the currently authenticated user only
+    # Returns objects for the currently authenticated User only
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
-    # Create a new user object
+    # Creates a new object
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -43,9 +43,22 @@ class CollectionViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    # Retrieves the Collection list for the authenticated user
+    # Converts a list of string IDs to a list of integers
+    def _params_to_ints(self, qs):
+        return [int(str_id) for str_id in qs.split(',')]
+
+    # Retrieves the Collection list for the authenticated User
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        tags = self.request.query_params.get('tags')
+        items = self.request.query_params.get('items')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if items:
+            item_ids = self._params_to_ints(items)
+            queryset = queryset.filter(items__id__in=item_ids)
+        return queryset.filter(user=self.request.user)
 
     # Returns the appropriate serializer class
     def get_serializer_class(self):
@@ -60,7 +73,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(methods=['POST'], detail=True, url_path='upload-image')
-    # Uploads an image to a collection
+    # Uploads an image to a Collection
     def upload_image(self, request, pk=None):
         collection = self.get_object()
         serializer = self.get_serializer(

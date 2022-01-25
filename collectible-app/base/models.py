@@ -14,7 +14,7 @@ def collection_image_file_path(instance, filename):
 
 
 class UserManager(BaseUserManager):
-    # Create and Save a new User
+    # Creates and Saves a new User
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('User must have a valid E-Mail address')
@@ -23,7 +23,7 @@ class UserManager(BaseUserManager):
         user.save(using=self.db)
         return user
 
-    # Create and save a new Superuser
+    # Creates and saves a new Superuser
     def create_superuser(self, email, password):
         user = self.create_user(email, password)
         user.is_staff = True
@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-# Account based on E-mail and not username.
+# Customizes account so it is based on E-mail and not username.
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
 
-# Tag to be used on a collection
+# Creates a Tag to be used on a Collection
 class Tag(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
@@ -54,7 +54,7 @@ class Tag(models.Model):
         return self.name
 
 
-# Item to be listed in a collection
+# Creates an Item to be listed in a Collection
 class Item(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
@@ -66,7 +66,7 @@ class Item(models.Model):
         return self.name
 
 
-# A collection object composed of items with tags.
+# Creates a Collection that is composed of Items with Tags.
 class Collection(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

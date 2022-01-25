@@ -10,18 +10,18 @@ from collection.serializers import ItemSerializer
 ITEMS_URL = reverse('collection:item-list')
 
 
-# Test the publicly available items API
+# Test the publicly available functions of the Items API
 class PublicItemsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    # Tests that only users can access the items endpoint
+    # Tests that only Users can access the Items endpoint
     def test_login_required(self):
         res = self.client.get(ITEMS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# Tests items API features that require authentication
+# Tests the features of the Items API that require authentication
 class PrivateItemsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -31,7 +31,7 @@ class PrivateItemsAPITests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    # Tests retrieving a list of items
+    # Tests retrieving a list of Items
     def test_retrieve_item_list(self):
         Item.objects.create(user=self.user, name='Monster')
         Item.objects.create(user=self.user, name='DeadAvatar400')
@@ -41,7 +41,7 @@ class PrivateItemsAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    # Tests that items for the authenticated user are returned
+    # Tests that only the Items for the authenticated User are returned
     def test_items_limited_to_user(self):
         user2 = gum().objects.create_user(
             'oremlipsum@gmail.com',
@@ -54,7 +54,7 @@ class PrivateItemsAPITests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], item.name)
 
-    # Tests the successful creation of an item
+    # Tests the successful creation of an Item
     def test_create_item_successful(self):
         item = {'name': 'Cowboy'}
         self.client.post(ITEMS_URL, item)
@@ -64,7 +64,7 @@ class PrivateItemsAPITests(TestCase):
         ).exists()
         self.assertTrue(exists)
 
-    # Tests creating an item with invalid information
+    # Tests creating an Item with invalid information
     def test_create_item_invalid(self):
         item = {'name': ''}
         res = self.client.post(ITEMS_URL, item)
