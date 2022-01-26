@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model as gum
 from django.urls import reverse
-
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -15,12 +14,12 @@ def create_user(**params):
     return gum().objects.create_user(**params)
 
 
-# Test the public user API
+# Tests the public User API
 class PublicUserAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    # Test creating a user with valid credentials is successful
+    # Tests that creating a user with valid credentials is successful
     def test_create_valid_user_success(self):
         userInfo = {
             'email': 'loremipsum@gmail.com',
@@ -28,13 +27,12 @@ class PublicUserAPITests(TestCase):
             'name': 'Lonestar',
         }
         res = self.client.post(CREATE_USER_URL, userInfo)
-
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user = gum().objects.get(**res.data)
         self.assertTrue(user.check_password(userInfo['password']))
         self.assertNotIn('password', res.data)
 
-    # Test trying to create a user that already exists in the database
+    # Tests trying to create a User that already exists in the database
     def test_user_exists(self):
         userInfo = {
             'email': 'loremipsum@gmail.com',
@@ -42,12 +40,10 @@ class PublicUserAPITests(TestCase):
             'name': 'Lonestar',
             }
         create_user(**userInfo)
-
         res = self.client.post(CREATE_USER_URL, userInfo)
-
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # Test that the password has enough characters
+    # Tests that the new User's password has enough characters
     def test_password_too_short(self):
         userInfo = {
             'email': 'loremipsum@gmail.com',
@@ -55,7 +51,6 @@ class PublicUserAPITests(TestCase):
             'name': 'Lonestar',
             }
         res = self.client.post(CREATE_USER_URL, userInfo)
-
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         user_exists = gum().objects.filter(
             email=userInfo['email']
@@ -71,7 +66,6 @@ class PublicUserAPITests(TestCase):
             }
         create_user(**userInfo)
         res = self.client.post(TOKEN_URL, userInfo)
-
         self.assertIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -81,11 +75,10 @@ class PublicUserAPITests(TestCase):
                     name='Lonestar')
         badCredentials = {'email': 'loremipsum@gmail.com', 'password': 'RGGE'}
         res = self.client.post(TOKEN_URL, badCredentials)
-
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # Make sure if there is no user, no token is granted
+    # Makes sure that if there is no User, no token is granted
     def test_create_token_no_user(self):
         userInfo = {
             'email': 'loremipsum@gmail.com',
@@ -103,13 +96,13 @@ class PublicUserAPITests(TestCase):
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # Tests that authentication is required for users
+    # Tests that authentication is required for Users
     def test_retrieve_user_unauthorized(self):
         res = self.client.get(ME_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# Testing the API requests that require authentication first
+# Tests the API requests that require authentication first
 class PrivateUserAPITests(TestCase):
     def setUp(self):
         self.user = create_user(
@@ -127,7 +120,7 @@ class PrivateUserAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, {
             'name': self.user.name,
-            'email': self.user.email
+            'email': self.user.email,
         })
 
     # Tests that POST is not allowed on the me url.

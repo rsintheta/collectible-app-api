@@ -8,6 +8,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('id', 'name')
         read_only_fields = ('id',)
+        order_by = ['-id']
 
 
 # Serializes an Item
@@ -16,17 +17,18 @@ class ItemSerializer(serializers.ModelSerializer):
         model = Item
         fields = ('id', 'name')
         read_only_fields = ('id',)
+        order_by = ['-id']
 
 
 # Serializes a Collection
 class CollectionSerializer(serializers.ModelSerializer):
     items = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Item.objects.all()
+        queryset=Item.objects.all(),
     )
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Tag.objects.all()
+        queryset=Tag.objects.all(),
     )
 
     class Meta:
@@ -34,12 +36,13 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'items', 'tags', 'items_in_collection',
                   'floor_price', 'link')
         read_only_fields = ('id',)
+        order_by = ['-id']
 
 
-# Serializes a Collections details
+# Serializes a Collection's details
 class CollectionDetailSerializer(CollectionSerializer):
-        items = ItemSerializer(many=True, read_only=True)
-        tags = TagSerializer(many=True, read_only=True)
+    items = ItemSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
 
 # Serializes uploaded images to Collections
@@ -48,3 +51,4 @@ class CollectionImageSerializer(serializers.ModelSerializer):
         model = Collection
         fields = ('id', 'image')
         read_only_fields = ('id',)
+        order_by = ['-id']

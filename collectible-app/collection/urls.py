@@ -11,5 +11,5 @@ router.register('collections', views.CollectionViewSet)
 app_name = 'collection'
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
 ]

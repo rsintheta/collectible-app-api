@@ -14,7 +14,7 @@ def collection_image_file_path(instance, filename):
 
 
 class UserManager(BaseUserManager):
-    # Creates and Saves a new User
+    # Creates and saves a new User
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('User must have a valid E-Mail address')
@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-# Customizes account so it is based on E-mail and not username.
+# Customizes User account so it is based on E-mail and not username.
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -70,7 +70,7 @@ class Item(models.Model):
 class Collection(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     title = models.CharField(max_length=255)
     items_in_collection = models.IntegerField()

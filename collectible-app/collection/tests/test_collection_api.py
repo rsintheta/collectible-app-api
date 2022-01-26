@@ -61,25 +61,25 @@ class PrivateCollectionAPITests(TestCase):
         self.client = APIClient()
         self.user = gum().objects.create_user(
             'loremipsum@gmail.com',
-            'Tbin5041'
+            'Tbin5041',
         )
         self.client.force_authenticate(self.user)
 
     # Tests retrieving a list of Collections
     def test_retrieve_collections(self):
         sample_collection(user=self.user)
-        sample_collection(user=self.user)
+        sample_collection(user=self.user, title='mumopins')
         res = self.client.get(COLLECTIONS_URL)
-        collections = Collection.objects.all().order_by('-id')
+        collections = Collection.objects.all()
         serializer = CollectionSerializer(collections, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    # Test that a user can only retrieve their own Collections
+    # Test that a User can only retrieve their own Collections
     def test_collections_limited_to_user(self):
         user2 = gum().objects.create_user(
             'oremlipsum@gmail.com',
-            'Tbin5041'
+            'Tbin5041',
         )
         sample_collection(user=user2)
         sample_collection(user=self.user)

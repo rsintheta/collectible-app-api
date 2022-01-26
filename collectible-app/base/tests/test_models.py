@@ -15,25 +15,29 @@ class ModelTests(TestCase):
         email = 'loremipsum@gmail.com'
         password = 'Tbin5041'
         user = gum().objects.create_user(
-            email=email, password=password)
+            email=email,
+            password=password,
+            )
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
 
-    # Tests that the email is normalized
+    # Tests that the email is normalized, otherwise the end is case sensitive
     def test_new_user_email_normalized(self):
         email = 'loremipsum@GMail.cOM'
         user = gum().objects.create_user(email, 'Tbin5041')
         self.assertEqual(user.email, email.lower())
 
-    # Tests to make sure the entered email is valid
+    # Tests to make sure the entered email is valid input
     def test_new_user_invalid_email(self):
         with self.assertRaises(ValueError):
             gum().objects.create_user(None, 'tobn')
 
-    # Tests creating a Superuser
+    # Tests creating a new Superuser
     def test_create_new_superuser(self):
         user = gum().objects.create_superuser(
-            'mloremipsu@gmail.com', 'Tbin5041')
+            'mloremipsu@gmail.com',
+            'Tbin5041',
+            )
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
 
@@ -41,7 +45,7 @@ class ModelTests(TestCase):
     def test_tag_str(self):
         tag = models.Tag.objects.create(
             user=sample_user(),
-            name='Autumn Pin Collection'
+            name='Autumn Pin Collection',
         )
         self.assertEqual(str(tag), tag.name)
 
@@ -60,10 +64,11 @@ class ModelTests(TestCase):
             user=sample_user(),
             title='Dead Avatar Project',
             items_in_collection=10000,
-            floor_price=0.50
+            floor_price=0.50,
         )
         self.assertEqual(str(collection), collection.title)
 
+    # Mock Decorator that creates a uuid4 we would expect from a valid image.
     @patch('uuid.uuid4')
     # Tests that images are saved to the current location
     def test_collection_filename_uuid(self, mock_uuid):

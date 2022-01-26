@@ -27,7 +27,7 @@ class PrivateItemsAPITests(TestCase):
         self.client = APIClient()
         self.user = gum().objects.create_user(
             'loremipsum@gmail.com',
-            'Tbin5041'
+            'Tbin5041',
         )
         self.client.force_authenticate(self.user)
 
@@ -45,7 +45,7 @@ class PrivateItemsAPITests(TestCase):
     def test_items_limited_to_user(self):
         user2 = gum().objects.create_user(
             'oremlipsum@gmail.com',
-            'Tobn2180'
+            'Tobn2180',
         )
         Item.objects.create(user=user2, name='DeadAvatar369')
         item = Item.objects.create(user=self.user, name='DeadAvatar867')
@@ -74,11 +74,11 @@ class PrivateItemsAPITests(TestCase):
     def test_retrieve_items_assigned_to_collections(self):
         item1 = Item.objects.create(
             user=self.user,
-            name='DeadAvatar411'
+            name='DeadAvatar411',
         )
         item2 = Item.objects.create(
             user=self.user,
-            name='Founder\'s Token'
+            name='Founder\'s Token',
         )
         collection = Collection.objects.create(
             title='Dead Avatar Project',
@@ -93,7 +93,7 @@ class PrivateItemsAPITests(TestCase):
         self.assertIn(serializer1.data, res.data)
         self.assertNotIn(serializer2.data, res.data)
 
-    # Tests filtering items by assigned will return unique items.
+    # Tests that filtering items by assigned will return unique items.
     def test_retrieve_item_assigned_unique(self):
         item = Item.objects.create(
             user=self.user,

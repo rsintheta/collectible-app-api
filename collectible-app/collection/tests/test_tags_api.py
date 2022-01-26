@@ -10,23 +10,24 @@ from collection.serializers import TagSerializer
 TAGS_URL = reverse('collection:tag-list')
 
 
-# Test the publicly available features of the Tags in the API
+# Test the publicly available features of the Tags API
 class PublicTagsAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-    # Make sure you can't retrieve Tags without authentication
+    # Makes sure a user can't retrieve Tags without authentication
     def test_login_required(self):
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# Tests the Tags features in the API that require authentication
+# Tests the features of the Tags API that require authentication
 class PrivateTagsAPITests(TestCase):
     def setUp(self):
         self.user = gum().objects.create_user(
             'loremipsum@gmail.com',
-            'Tbin5041')
+            'Tbin5041',
+            )
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
@@ -77,7 +78,7 @@ class PrivateTagsAPITests(TestCase):
             title='Mumopins Collection',
             items_in_collection=25,
             floor_price=50.00,
-            user=self.user
+            user=self.user,
         )
         collection.tags.add(tag1)
         res = self.client.get(TAGS_URL, {'assigned_only': 1})
