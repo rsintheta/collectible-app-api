@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-from base.models import Tag
+from base.models import Tag, Collection
 from collection.serializers import TagSerializer
 
 
@@ -68,3 +68,41 @@ class PrivateTagsAPITests(TestCase):
         tag = {'name': ''}
         res = self.client.post(TAGS_URL, tag)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Tests filtering Tags by those assigned to Collections
+    def test_retrieve_tags_assigned_to_collections(self):
+        tag1 = Tag.objects.create(user=self.user, name='Favorite')
+        tag2 = Tag.objects.create(user=self.user, name='Owned')
+        collection = Collection.objects.create(
+            title='Mumopins Collection',
+            items_in_collection=25,
+            floor_price=50.00,
+            user=self.user
+        )
+        collection.tags.add(tag1)
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        serializer1 = TagSerializer(tag1)
+        serializer2 = TagSerializer(tag2)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    # Tests that filtering Tags by assigned will return unique items
+    def test_retrieve_tags_assigned_unique(self):
+        tag = Tag.objects.create(user=self.user, name='Favorite')
+        Tag.objects.create(user=self.user, name='Owned')
+        collection1 = Collection.objects.create(
+            title='Summer Pin Collection',
+            items_in_collection=10,
+            floor_price=50.00,
+            user=self.user,
+        )
+        collection1.tags.add(tag)
+        collection2 = Collection.objects.create(
+            title='Fall Pin Collection',
+            items_in_collection=12,
+            floor_price=50.00,
+            user=self.user,
+        )
+        collection2.tags.add(tag)
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        self.assertEqual(len(res.data), 1)

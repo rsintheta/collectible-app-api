@@ -17,7 +17,15 @@ class BaseCollectionAttrViewset(viewsets.GenericViewSet,
 
     # Returns objects for the currently authenticated User only
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(collection__isnull=False)
+        return queryset.filter(
+            user=self.request.user
+            ).order_by('-name').distinct()
 
     # Creates a new object
     def perform_create(self, serializer):
