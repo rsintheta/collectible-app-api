@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, get_user_model as gum
 from rest_framework import serializers
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _ # Put this to translate
 
 
 # Serializes User data
