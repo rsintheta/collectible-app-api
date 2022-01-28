@@ -24,10 +24,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
+    - name: Test Software
       env:
         KEY_SECRET_DJANGO: ${{ secrets.SECRET_KEY }}
         SUPERUSER_ADMIN_PASSWORD: ${{ secrets.SUPERUSER_ADMIN_PASSWORD }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_PASS: ${{ secrets.DB_PASS }}
+        DB_USER: ${{ secrets.DB_USER }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -37,5 +44,3 @@ jobs:
         python manage.py test
         # Use pytest
         pytest
-        
-    
