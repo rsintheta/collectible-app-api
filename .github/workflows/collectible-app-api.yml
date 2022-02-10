@@ -16,9 +16,9 @@ env:
   DJANGO_SUPERUSER_USERNAME: "${{ secrets.DJANGO_SUPERUSER_USERNAME }}"
   DJANGO_SUPERUSER_EMAIL: "${{ secrets.DJANGO_SUPERUSER_EMAIL }}"
   DB_HOST: db
-  DB_NAME: "${{ secrets.PROJECT_NAME }}-postgres"
-  DB_PASS: "${{ secrets.POSTGRES_PASSWORD }}"
-  DB_USER: "${{ secrets.POSTGRES_USER }}"
+  DB_NAME: collectible-app-postgres
+  DB_PASS: postgres
+  DB_USER: postgres
 
 jobs:
   build:
@@ -27,9 +27,9 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: "${{ secrets.PROJECT_NAME }}-postgres"
-          POSGRES_PASSWORD: "${{ secrets.POSTGRES_PASSWORD }}"
-          POSTGRES_USER: "${{ secrets.POSTGRES_USER }}"
+          POSTGRES_DB: collectible-app-postgres
+          POSGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
         ports:
           - 5432:5432
         options: >-
@@ -39,7 +39,7 @@ jobs:
           --health-retries 5
     steps:
     - uses: actions/checkout@v2
-    - name: Set up $PYTHON_TAG
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
         PYTHON_TAG: "${{ secrets.PYTHON_TAG }}"
