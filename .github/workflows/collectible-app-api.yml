@@ -14,7 +14,7 @@ jobs:
     services:
       postgres:
         image: postgres:${{ secrets.POSTGRES_TAG }}
-      env:
+      with:
         PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
         PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         POSTGRES_DB: ${{ PROJECT_NAME }}-postgres
@@ -42,7 +42,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Lint Software(flake8)
-      env:
+      with:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
         DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
