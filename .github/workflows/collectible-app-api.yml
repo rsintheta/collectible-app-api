@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
+        with:
+          POSTGRES_TAG: '${{ secrets.POSTGRES_TAG }}'
         image: postgres:${{ secrets.POSTGRES_TAG }}
       with:
         PYTHON_TAG: '${{ secrets.PYTHON_TAG }}'
