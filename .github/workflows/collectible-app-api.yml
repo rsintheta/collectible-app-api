@@ -16,7 +16,7 @@ env:
   DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
   DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
   DB_HOST: db
-  DB_NAME: ${{ PROJECT_NAME }}-postgres
+  DB_NAME: ${{ secrets.PROJECT_NAME }}-postgres
   DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
   DB_USER: ${{ secrets.POSTGRES_USER }}
 
@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:${{ POSTGRES_TAG }}
+        image: postgres:${{ secrets.POSTGRES_TAG }}
         env:
-          POSTGRES_DB: ${{ PROJECT_NAME }}-postgres
+          POSTGRES_DB: ${{ secrets.PROJECT_NAME }}-postgres
           POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
