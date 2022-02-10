@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:${{ secrets.POSTGRES_TAG }}
+        image: postgres:latest
         env:
           POSTGRES_DB: ${{ secrets.PROJECT_NAME }}-postgres
           POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
