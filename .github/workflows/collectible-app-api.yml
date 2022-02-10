@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:"$POSTGRES_TAG"
+        image: "postgres:$POSTGRES_TAG"
       ports:
         - 5432:5432
       options:
