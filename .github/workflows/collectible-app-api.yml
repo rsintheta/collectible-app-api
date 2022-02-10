@@ -164,7 +164,7 @@ jobs:
         export ALLOWED_HOSTS=localhost
         export GITHUB_WORKFLOW=True
         export MODE=workflow
-      run: |
+
         echo --- Waiting for db... ---
         python manage.py wait_for_db
 
