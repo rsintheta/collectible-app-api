@@ -9,15 +9,9 @@ on:
     branches: [ main ]
 
 env:
-  PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
   PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
-  POSTGRES_DB: "$PROJECT_NAME-postgres"
-  POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
   DB_PORT_CLIENT: ${{ secrets.DB_PORT_HOST }}
   DB_PORT_CONTAINER: ${{ secrets.DB_PORT_CONTAINER }}
-  SECRET_KEY: ${{ secrets.SECRET_KEY }}
   DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
   DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
   DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
@@ -32,19 +26,25 @@ jobs:
     services:
       postgres:
         image: "postgres:$POSTGRES_TAG"
-      ports:
-        - 5432:5432
-      options:
-        --health-cmd pg_isready
-        --health-interval 10s
-        --health-timeout 5s
-        --health-retries 5
+        env:
+          POSTGRES_DB: "$PROJECT_NAME-postgres"
+          POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        ports:
+          - 5432:5432
+        options:
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v2
     - name: Set up "$PYTHON_TAG"
       uses: actions/setup-python@v2
       with:
-        python-version: "$PYTHON_TAG"
+        PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -52,30 +52,92 @@ jobs:
 
     - name: Lint Software(flake8)
       run: |
-        echo --- Waiting for db... ---
-        python manage.py wait_for_db
-        echo --- Checking for Migrations... ---
-        python manage.py migrate
-        echo --- Collecting Static Files... ---
-        python manage.py collectstatic --no-input
-
-        # Stops the build if there are Python syntax errors or undefined names
+        echo --- Checking for syntax errors/undefined names ---
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         echo --- Passed Flake8 Test 1! ---
-        # '--exit-zero' treats all errors as warnings. '--max-line-length' the GitHub editor is 127 chars wide
+
+        echo --- --exit-zero' treats all errors as warnings. '--max-line-length' the GitHub editor is 127 chars wide ---
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         echo --- Passed Flake8 Test 2! ---
 
-    - name: Django built in Unittest
-
+    - name: Sort imports
       run: |
+        echo --- Installing isort... ---
+        pip install isort
+
+        echo --- Recursively sorting all imports alphabetically & grouping by type... ---
+        isort .
+
+        echo --- Display unsorted/unformatted imports without applying them... ---
+        isort --check --diff .
+        echo --- Import Sorting complete! ---
+
+    - name: Setup test database
+      env:
+        POSTGRES_DB: "$PROJECT_NAME-postgres"
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        export DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@5432:5432/$PROJECT_NAME-postgres
+        export SECRET_KEY=${{ secrets.SECRET_KEY }}
+        export DEBUG=1
+
+    - name: Run migrations
+      env:
+        POSTGRES_DB: "$PROJECT_NAME-postgres"
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        echo --- Setting up... ---
+        export DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@5432:5432/$PROJECT_NAME-postgres
+        export SECRET_KEY=${{ secrets.SECRET_KEY }}
+        export DEBUG=1
+        export ALLOWED_HOSTS=localhost
+        export GITHUB_WORKFLOW=True
+        export MODE=workflow
+
+        echo --- Waiting for db... ---
+        python manage.py wait_for_db
+
+        echo --- Creating migrations... ---
+        python manage.py makemigrations
+
+        echo --- Running migrations ---
+        python manage.py migrate
+
+        echo --- Runs Django check for integrity ---
+        python manage.py check
+        echo --- Migrations complete! ---
+
+    - name: Django built in Unittest
+      env:
+        POSTGRES_DB: "$PROJECT_NAME-postgres"
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        echo --- Setting up... ---
+        export DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@5432:5432/$PROJECT_NAME-postgres
+        export SECRET_KEY=${{ secrets.SECRET_KEY }}
+        export DEBUG=1
+        export ALLOWED_HOSTS=localhost
+        export GITHUB_WORKFLOW=True
+        export MODE=workflow
+
         echo --- Waiting for db ---
         python manage.py wait_for_db
+
         echo --- Checking for migrations... ---
         python manage.py migrate
-        # Using builtin Unittest
+
         echo --- Collecting static files... ---
         python manage.py collectstatic --no-input
+
         coverage run manage.py test && coverage report --fail-under=75 && coverage xml
         echo --- Unittest Complete! ---
 
@@ -88,13 +150,31 @@ jobs:
         fail_ci_if_error: true
 
     - name: Pytest
+      env:
+        POSTGRES_DB: "$PROJECT_NAME-postgres"
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        echo --- Setting up... ---
+        export DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@5432:5432/$PROJECT_NAME-postgres
+        export SECRET_KEY=${{ secrets.SECRET_KEY }}
+        export DEBUG=1
+        export ALLOWED_HOSTS=localhost
+        export GITHUB_WORKFLOW=True
+        export MODE=workflow
       run: |
         echo --- Waiting for db... ---
         python manage.py wait_for_db
+
         echo --- Checking for migrations... ---
         python manage.py migrate
+
         echo --- Collecting static files... ---
         python manage.py collectstatic --no-input
+
+        echo ---  ---
         pytest
         echo --- pytest complete! ---
 ...
