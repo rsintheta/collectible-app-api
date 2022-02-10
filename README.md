@@ -25,7 +25,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField' to my settings file.
 Something I thought was strange and interesting was that before while I was
 testing the retrieval of a list of collections. Originally on line 75 of my
 code(test_collection_api.py) was:
+
 `collections = Collection.objects.all().order_by('-id')`
+
 Which served its purpose in the previous build configuration as confirmed via
 a later assertion. However, upon upgrading to the newest compatible versions of
 all python packages, the docker image, and database, the test failed. All of a
@@ -45,6 +47,22 @@ and Tags public when an artist is ready to publish it to the site.
 
 Also, I had the opportunity to brush up on the PIL library by adding images to
 Collections(and soon Items), I've worked with PIL before and it's rather fun.
+
+Another thing that drew out the length of this project was my deep dive into
+codecoverage, github actions and travis-ci. Each of these systems seemed to
+want a differently formatted .yml file, and after much trial error and
+referencing I have made satisfying breakthroughs.
+
+Finally, I used this project as a way to learn about secrets, something that
+I am very passionate about. When I pass my project to a webhost or a continuous
+integration service, I'm putting my secrets at risk. Travis-CI was recently
+hacked, and many projects secrets were exposed. I tried many different methods
+to try to prevent having to make use of these third parties secret keeping
+systems, but I ultimately capitualted in the interest of time. Even though I
+was unable to circumvent exposing my secrets in this way, I've come to
+understand that rather than having a few constant and secure secrets, it's
+better to build a system with frequently changing secrets, because it reduces
+the amount of time an attacker would have to identify them.
 
 Many thanks to Mark Winterbottom for answering some of the questions I had
 when I was setting this up.

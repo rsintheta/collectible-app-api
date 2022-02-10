@@ -1,46 +1,217 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
+---
 name: Collectible-App-API
 
 on:
   push:
     branches: [ main ]
+
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    services:
+      postgres:
+        image: postgres:${{ POSTGRES_TAG }}
+      env:
+        PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        POSTGRES_DB: ${{ PROJECT_NAME }}-postgres
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        DB_PORT_CLIENT: ${{ secrets.DB_PORT_HOST }}
+        DB_PORT_CONTAINER: ${{ secrets.DB_PORT_CONTAINER }}
+      ports:
+        - 5432:5432
+      options:
+        --health-cmd pg_isready
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8.12
+    - name: Set up ${{ PYTHON_TAG }}
       uses: actions/setup-python@v2
       with:
-        python-version: "3.8.12"
+        python-version: ${{ PYTHON_TAG }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test Software
+        pip install -r requirements.txt
+
+    - name: Lint Software(flake8)
       env:
-        KEY_SECRET_DJANGO: ${{ secrets.SECRET_KEY }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+        DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+        DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+        DB_HOST: db
+        DB_NAME: ${{ PROJECT_NAME }}-postgres
+        DB_PASS: ${{ POSTGRES_PASSWORD }}
+        DB_USER: ${{ POSTGRES_USER }}
+
+      run: |
+        echo --- Waiting for db... ---
+        python manage.py wait_for_db
+        echo --- Checking for Migrations... ---
+        python manage.py migrate
+        echo --- Collecting Static Files... ---
+        python manage.py collectstatic --no-input
+
+        # Stops the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        echo --- Passed Flake8 Test 1! ---
+        # '--exit-zero' treats all errors as warnings. '--max-line-length' the GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        echo --- Passed Flake8 Test 2! ---
+
+    - name: Django built in Unittest
+
+      run: |
+        echo --- Waiting for db ---
+        python manage.py wait_for_db
+        echo --- Checking for migrations... ---
+        python manage.py migrate
+        # Using builtin Unittest
+        echo --- Collecting static files... ---
+        python manage.py collectstatic --no-input
+        coverage run manage.py test && coverage report --fail-under=75 && coverage xml
+        echo --- Unittest Complete! ---
+
+    - name: Reporting coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        directory: ./coverage/reports/
+        fail_ci_if_error: true
+
+    - name: Pytest
+      run: |
+        echo --- Waiting for db... ---
+        python manage.py wait_for_db
+        echo --- Checking for migrations... ---
+        python manage.py migrate
+        echo --- Collecting static files... ---
+        python manage.py collectstatic --no-input
+        pytest
+        echo --- pytest complete! ---
+...
+
+name: Collectible-App-API
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: lucasalt/act_base:latest
+    steps:
+    - name: Build docker
+      env:
+        PROJECT_NAME: ${{secrets.PROJECT_NAME}}
+      run: |
+        echo ---Building and starting up docker...---
+        docker-compose -f ./${{PROJECT_NAME}}/docker-compose.yml -p testing up -d
+        echo ---Containers up---
+
+    - uses: actions/checkout@v2
+
+    - name: Build the stack
+      run:
+
+    - name: Lint Software(flake8)
+      env:
+        SECRET_KEY: ${{ secrets.KEY_SECRET_DJANGO }}
         SUPERUSER_ADMIN_PASSWORD: ${{ secrets.SUPERUSER_ADMIN_PASSWORD }}
+        DJANGO_SUPERUSER_USERNAME: ${{ secrets.SUPERUSER_ADMIN_USERNAME }}
+        DJANGO_SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_ADMIN_EMAIL }}
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_NAME: ${{ secrets.DB_NAME }}
         DB_PASS: ${{ secrets.DB_PASS }}
         DB_USER: ${{ secrets.DB_USER }}
-        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+
       run: |
-        # stop the build if there are Python syntax errors or undefined names
+        echo --- Waiting for db... ---
+        python manage.py wait_for_db
+        echo --- Checking for Migrations... ---
+        python manage.py migrate
+        echo --- Collecting Static Files... ---
+        python manage.py collectstatic --no-input
+
+        # Stops the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        echo --- Passed Flake8 Test 1! ---
+        # '--exit-zero' treats all errors as warnings. '--max-line-length' the GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-        # use builtin Unittest
-        python manage.py test
-        # Use pytest
+        echo --- Passed Flake8 Test 2! ---
+
+    - name: Django built in Unittest
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        SUPERUSER_ADMIN_PASSWORD: ${{ secrets.SUPERUSER_ADMIN_PASSWORD }}
+        DJANGO_SUPERUSER_USERNAME: ${{ secrets.SUPERUSER_ADMIN_USERNAME }}
+        DJANGO_SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_ADMIN_EMAIL }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_PASS: ${{ secrets.DB_PASS }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+
+      run: |
+        echo --- Waiting for db ---
+        python manage.py wait_for_db
+        echo --- Checking for migrations... ---
+        python manage.py migrate
+        # Using builtin Unittest
+        echo --- Collecting static files... ---
+        python manage.py collectstatic --no-input
+        coverage run manage.py test && coverage report --fail-under=75 && coverage xml
+        echo --- Unittest Complete! ---
+
+    - name: Reporting coverage to Codecov
+      env:
+        SECRET_KEY: ${{ secrets.KEY_SECRET_DJANGO }}
+        SUPERUSER_ADMIN_PASSWORD: ${{ secrets.SUPERUSER_ADMIN_PASSWORD }}
+        DJANGO_SUPERUSER_USERNAME: ${{ secrets.SUPERUSER_ADMIN_USERNAME }}
+        DJANGO_SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_ADMIN_EMAIL }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_PASS: ${{ secrets.DB_PASS }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        directory: ./coverage/reports/
+        fail_ci_if_error: true
+
+    - name: Pytest
+      env:
+        SECRET_KEY: ${{ secrets.KEY_SECRET_DJANGO }}
+        SUPERUSER_ADMIN_PASSWORD: ${{ secrets.SUPERUSER_ADMIN_PASSWORD }}
+        DJANGO_SUPERUSER_USERNAME: ${{ secrets.SUPERUSER_ADMIN_USERNAME }}
+        DJANGO_SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_ADMIN_EMAIL }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_PASS: ${{ secrets.DB_PASS }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+
+      run: |
+        echo --- Waiting for db... ---
+        python manage.py wait_for_db
+        echo --- Checking for migrations... ---
+        python manage.py migrate
+        echo --- Collecting static files... ---
+        python manage.py collectstatic --no-input
         pytest
+        echo --- pytest complete! ---
