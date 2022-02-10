@@ -8,23 +8,30 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  POSTGRES_DB: '${{ PROJECT_NAME }}-postgres'
+  POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+  DB_PORT_CLIENT: ${{ secrets.DB_PORT_HOST }}
+  DB_PORT_CONTAINER: ${{ secrets.DB_PORT_CONTAINER }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+  DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+  DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+  DB_HOST: db
+  DB_NAME: '${{ secrets.PROJECT_NAME }}-postgres'
+  DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
+  DB_USER: ${{ secrets.POSTGRES_USER }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     services:
       postgres:
-        with:
-          POSTGRES_TAG: '${{ secrets.POSTGRES_TAG }}'
-        image: postgres:${{ secrets.POSTGRES_TAG }}
-      with:
-        PYTHON_TAG: '${{ secrets.PYTHON_TAG }}'
-        PROJECT_NAME: '${{ secrets.PROJECT_NAME }}'
-        POSTGRES_DB: '${{ PROJECT_NAME }}-postgres'
-        POSGRES_PASSWORD: '${{ secrets.POSTGRES_PASSWORD }}'
-        POSTGRES_USER: '${{ secrets.POSTGRES_USER }}'
-        POSTGRES_TAG: '${{ secrets.POSTGRES_TAG }}'
-        DB_PORT_CLIENT: '${{ secrets.DB_PORT_HOST }}'
-        DB_PORT_CONTAINER: '${{ secrets.DB_PORT_CONTAINER }}'
+        image: postgres:$POSTGRES_TAG
       ports:
         - 5432:5432
       options:
@@ -34,26 +41,16 @@ jobs:
         --health-retries 5
     steps:
     - uses: actions/checkout@v2
-    - name: Set up '${{ secrets.PYTHON_TAG }}'
+    - name: Set up $PYTHON_TAG
       uses: actions/setup-python@v2
       with:
-        python-version: '${{ secrets.PYTHON_TAG }}'
+        python-version: $PYTHON_TAG
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Lint Software(flake8)
-      with:
-        SECRET_KEY: '${{ secrets.SECRET_KEY }}'
-        DJANGO_SUPERUSER_PASSWORD: '${{ secrets.DJANGO_SUPERUSER_PASSWORD }}'
-        DJANGO_SUPERUSER_USERNAME: '${{ secrets.DJANGO_SUPERUSER_USERNAME }}'
-        DJANGO_SUPERUSER_EMAIL: '${{ secrets.DJANGO_SUPERUSER_EMAIL }}'
-        DB_HOST: db
-        DB_NAME: '${{ secrets.PROJECT_NAME }}-postgres'
-        DB_PASS: '${{ secrets.POSTGRES_PASSWORD }}'
-        DB_USER: '${{ secrets.POSTGRES_USER }}'
-
       run: |
         echo --- Waiting for db... ---
         python manage.py wait_for_db
@@ -85,7 +82,7 @@ jobs:
     - name: Reporting coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        token: '${{ secrets.CODECOV_TOKEN }}'
+        token: $CODECOV_TOKEN
         files: ./coverage.xml
         directory: ./coverage/reports/
         fail_ci_if_error: true
