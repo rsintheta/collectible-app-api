@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:${{ POSTGRES_TAG }}
+        image: postgres:${{ secrets.POSTGRES_TAG }}
       env:
         PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
         PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
@@ -32,10 +32,10 @@ jobs:
         --health-retries 5
     steps:
     - uses: actions/checkout@v2
-    - name: Set up ${{ PYTHON_TAG }}
+    - name: Set up ${{ secrets.PYTHON_TAG }}
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ PYTHON_TAG }}
+        python-version: ${{ secrets.PYTHON_TAG }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -48,9 +48,9 @@ jobs:
         DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
         DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
         DB_HOST: db
-        DB_NAME: ${{ PROJECT_NAME }}-postgres
-        DB_PASS: ${{ POSTGRES_PASSWORD }}
-        DB_USER: ${{ POSTGRES_USER }}
+        DB_NAME: ${{ secrets.PROJECT_NAME }}-postgres
+        DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
+        DB_USER: ${{ secrets.POSTGRES_USER }}
 
       run: |
         echo --- Waiting for db... ---
