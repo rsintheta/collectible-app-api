@@ -12,6 +12,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     services:
+      with:
+        PYTHON_TAG: ${{ secrets.PYTHON_TAG }}
+        PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        POSTGRES_DB: ${{ PROJECT_NAME }}-postgres
+        POSGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_TAG: ${{ secrets.POSTGRES_TAG }}
+        DB_PORT_CLIENT: ${{ secrets.DB_PORT_HOST }}
+        DB_PORT_CONTAINER: ${{ secrets.DB_PORT_CONTAINER }}
       postgres:
         image: postgres:${{ secrets.POSTGRES_TAG }}
       with:
