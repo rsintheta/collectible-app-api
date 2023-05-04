@@ -1,8 +1,9 @@
-Django>=3.2.11
-djangorestframework>=3.11.2
-psycopg2>=2.8.6
-Pillow>=9.0.0
-flake8>=3.9.2
-coverage>=5.5
-pytest>=6.2.4
-tzdata>=2021e
+asgiref>=3.6.0
+coverage>=7.2.5
+Django>=4.2.1
+djangorestframework>=3.14.0
+flake8>=6.0.0
+Pillow>=9.5.0
+pip>=23.1.2
+psycopg2>=2.9.6
+pytest>=7.3.1
