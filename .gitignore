@@ -5,6 +5,7 @@ __pycache__/
 
 # Custom
 collectible-app/collectible-app-django/ybot52.py
+.idea/
 # Notes
 Docker.txt
 
